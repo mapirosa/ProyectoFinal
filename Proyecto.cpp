@@ -4,6 +4,7 @@
 #include<string>
 #include<time.h>
 #include<stdio.h>
+#include "raylib.h"
 
 #ifded_WIN32
     #include<windows.h>
@@ -82,6 +83,48 @@ void liberarTodo();
 //Lo demas XD
 const char*tipoToString(TipoLlamada t);
 TipoLlamada stringToTipo(const char* str);
+
+//Raylib--
+
+//configuracion ventana
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 600
+
+//edos. de la app
+typedef enum {
+    MENU_PRINCIPAL,
+    LISTA_CONTACTOS,
+    AGREGAR_CONTACTO,
+    EDITAR_CONTACTO,
+    VER_HISTORIAL,
+    REGISTRAR_LLAMADA,
+    CONFIRMAR_ELIMINAR,
+    MENSAJE
+} EdoApp;
+
+typedef enum{
+    ENTRANTE, SALIENTE, PERDIDA
+}TipLlam;
+
+typedef struct NodoLlam{
+    char ffecha[11];
+    char hora[6];
+    int duracion;
+    TipLlam tipo;
+    struct NodoLlam* sig;
+}NodLlam;
+
+typedef struct{
+    int id;
+    char nombre[100];
+    char telefono[20];
+    char email[100];
+    NodoLlam* hist;
+}Contact;
+
+//variables de UI
+static EdoApp edoActual=MENU_PRINCIPAL;
+
 
 int main(){
     cargar();
