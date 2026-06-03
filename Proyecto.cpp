@@ -46,6 +46,7 @@ struct Contacto {
     NodoLlamada* historialLlam; //cabeza de la lista enlazada de llamadas
 }Contacto;
 
+
 //Variables globales
 static Contacto**contactos=NULL;
 static int numContactos=0;
@@ -422,7 +423,7 @@ void guardar(){
 void cargar(){
     FILE* fb=fopen("Contactos.dat", "rb");
     if(!fb){
-        printf("No se encontró contactos.dat. Iniciando con agenda vacía.\n");
+        printf("No se encontrï¿½ contactos.dat. Iniciando con agenda vacï¿½a.\n");
         return;
     }
 
@@ -453,7 +454,7 @@ void cargar(){
 
     FILE* ft=fopen("historial.txt", "r");
     if(!ft){
-        printf("No se encontró historial.txt\n");
+        printf("No se encontrï¿½ historial.txt\n");
         return;
     }
 
