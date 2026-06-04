@@ -6,22 +6,6 @@
 #include<stdio.h>
 #include "raylib.h"
 
-#ifded_WIN32
-    #include<windows.h>
-    #define CLEAR "cls"
-#else
-    #define CLEAR "clear"
-#endif
-
-//ANSi
-#define COLOR_RESET "\033[0m"
-#define COLOR_RED "\033[31m"
-#define COLOR_GREEN "\033[32m"
-#define COLOR_YELLOW "\033[33m"
-#define COLOR_CYAN "\033[36m"
-#define COLOR_WHITE "\033[37m"
-#define COLOR_BORDE "\033[1;34m"  //azul brillante
-
 //enum de tipo llamada
 typedef enum {
     ENTRANTE,
@@ -47,24 +31,21 @@ struct Contacto {
     NodoLlamada* historialLlam; //cabeza de la lista enlazada de llamadas
 }Contacto;
 
-
 //Variables globales
 static Contacto**contactos=NULL;
 static int numContactos=0;
 static int capacidadContactos=0;
 
 //Prototipos
-void mostarMenu();
-void limpiarPantalla();
-void pausar();
 
 //Contactos
+/* no se ocuparon :)
 void agregarContacto();
 void buscarContacto();
 void editarContacto();
 void eliminarContacto();
 void listarContactos();
-Contacto* buscarContactID(int id);
+Contacto* buscarContactID(int id); */
 
 //Historial
 void registrarLlamada();
@@ -77,7 +58,7 @@ void guardar();
 void cargar();
 
 //Liberar memoria
-void liberarHistorial(NodoLlamada* cabeza);
+void liberarHist(NodoLlamada* cabeza);
 void liberarTodo();
 
 //Lo demas XD
@@ -89,6 +70,19 @@ TipoLlamada stringToTipo(const char* str);
 //configuracion ventana
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 600
+
+//prototipos
+void DibMenu();
+void DibListaContac();
+void DibFormuContac(int esEdicion);
+void DibHist(Contacto* c);
+void DibFormuLlam(Contacto* c);
+void DibConfirmElimin();
+void DibMsj();
+void MostMsj(const char* texto);
+void DibBot(Rectangle rect, const char* texto, Color colorBase, Color colorHover, bool* hover);
+bool BotPress(Rectangle rect, bool hover);
+
 
 //edos. de la app
 typedef enum {
@@ -124,257 +118,56 @@ typedef struct{
 
 //variables de UI
 static EdoApp edoActual=MENU_PRINCIPAL;
+static int selectContInd=0;
+static int scrollOff=0;
+static Contact* contactAct=NULL;
+static char inputBuff[256]="";
+static int inputMode=0;
+static char tempNomb[100]="";
+static char tempTel[20]="";
+static char tempEmail[100]="";
+static char tempFech[11]="";
+static char tempHr[6]="";
+static int tempDurac=0;
+static int tempTip= 1;
+static char mensajeTexto[256]= "";
+static double mensajeTiempo=0;
 
 
 int main(){
+   InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Agenda Telefónica Gráfica");
+    SetTargetFPS(60);
+    InitAudioDevice();
+
     cargar();
-    int opc;
-    do{
-        mostrarMenu();
-        printf("Seleccione una opcion: ");
-        scanf("%d", &opc);
-        getchar(); //limpiar buffer
-        switch(opc){
-            case 1: agregarContacto(); break;
-            case 2: buscarContacto(); break;
-            case 3: editarContacto(); break;
-            case 4: eliminarContacto(); break;
-            case 5: listarContactos(); break;
-            case 6: registrarLlamada(); break;
-            case 7: guardar(); printf(COLOR_GREEN 
-                "Datos guardados. Saliendo...\n" COLOR_RESET); break;
-            case 8: printf("Saliendo...\n"); break;
-            default: printf(COLOR_RED 
-                "Opcion invalida. Intente de nuevo.\n");
+
+    while (!WindowShouldClose()) {
+        if (edoActual == MENSAJE && GetTime() - mensajeTiempo > 2.0) {
+            edoActual = MENU_PRINCIPAL;
         }
-        if(opc !=8)pausar();
-    }while (opc!=8);
+
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+
+        switch (edoActual) {
+            case MENU_PRINCIPAL: DibMenu(); break;
+            case LISTA_CONTACTOS: DibListaContac(); break;
+            case AGREGAR_CONTACTO: DibFormuContac(0); break;
+            case EDITAR_CONTACTO: DibFormuContac(1); break;
+            case VER_HISTORIAL: DibHist(contactoActual); break;
+            case REGISTRAR_LLAMADA: DibFormuLlam(contactoActual); break;
+            case CONFIRMAR_ELIMINAR: DibConfirmElimin(); break;
+            case MENSAJE: DibMsj(); break;
+        }
+
+        EndDrawing();
+    }
+
+    guardar();
     liberarTodo();
+    CloseWindow();
     return 0;
 } 
-
-void limpiarPantalla(){
-    system(CLEAR);
-}
-
-void pausar(){
-    printf("Presione Enter para continuar...");
-    getchar();
-}
-
-void mostarMenu(){
-    limpiarPantalla();
-    printf(COLOR_BORDE
-    "==============================\n");
-    printf("   AGENDA DE CONTACTOS\n");
-    printf("==============================\n" COLOR_RESET);
-    printf("1. Agregar Contacto\n");
-    printf("2. Buscar Contacto\n");
-    printf("3. Editar Contacto\n");
-    printf("4. Eliminar Contacto\n");
-    printf("5. Listar Contactos\n");
-    printf("6. Registrar Llamada a un contacto\n");
-    printf("7. Guardar datos (contactos+historial)\n");
-    printf("8. Salir\n");
-    printf(COLOR_BORDE 
-    "==============================\n" COLOR_RESET);
-}
-
-void agragarContacto(){
-    if(numContactos== capacidadContactos){
-        capacidadContactos=(capacidadContactos==0)?5: 
-        capacidadContactos *2;
-        Contacto** temp=(Contacto**)realloc(contactos,
-        capacidadContactos * sizeof(Contacto*));
-        if(!temp){{
-            printf("Error de memoria\n");
-            return;
-        }
-        contactos=temp;
-    }
-    Contacto* nuevo=(Contacto*)malloc(sizeof(Contacto));
-    if(!nuevo){
-        printf("Error de memoria\n");
-        return;
-    }
-    nuevo->id =numContactos+1;
-    nuevo->historialLlam=NULL;
-    printf("Nuevo contacto id: %d\n", nuevo->id);
-    
-    printf("Nombre: ");
-    fgets(nuevo->nombre, sizeof(nuevo->nombre), stdin);
-    nuevo->nombre[strcspn(nuevo->nombre, "\n")] = 0;
-    
-    printf("Telefono: ");
-    fgets(nuevo->telefono, sizeof(nuevo->telefono), stdin);
-    nuevo->telefono[strcspn(nuevo->telefono, "\n")] = 0;
-    
-    printf("Email: ");
-    fgets(nuevo->email, sizeof(nuevo->email), stdin);
-    nuevo->email[strcspn(nuevo->email, "\n")] = 0;
-    contactos[numContactos++] = nuevo;
-    
-    printf("Contacto agregado extiosamente\n");
-    }
-}
-
-void buscarContacto(){
-    int opc;
-    printf("Buscar por:\n1. ID \n2. Nombre\n");
-    scanf("%d", &opc);
-    getchar();
-
-    if(opc==1){
-        int id;
-        printf("ID: ");
-        scanf("%d", &id);
-        getchar();
-        Contacto* c=buscarContactID(id);
-        if(c){
-            mostrarContactHistorial(c);
-        } else {
-            printf("Contacto no encontrado\n");
-        }
-    }else if(opc==2){
-        char nombre[100];
-        printf("Nombre: ");
-        fgets(nombre, sizeof(nombre), stdin);
-        nombre[strcspn(nombre, "\n")] = '\0';
-        int encontrado=0;
-        for(int i=0;i<numContactos:i++){
-            if(strstr(contactos[i]->nombre, nombre)!=NULL){
-                mostrarContactHistorial(contactos[i]);
-                encontrado=1;
-                printf("\n");
-            }
-        }
-        if(!encontrado) printf("No se encontraron contactos con ese nombre\n");
-    }else{
-        printf("Opcion invalida\n");
-    }
-}
-
-void editarContacto(){
-    int id;
-    printf("ID del contacto a editar: ");
-    scanf("%d", &id);
-    getchar();
-    Contacto* c=buscarContactID(id);
-    if(!c){
-        printf("Contacto no encontrado\n");
-        return;
-    }
-
-    printf("Deje en blanco para mantener el valor actual\n");
-    char buffer[100];
-
-    printf("Nombre [%s]: ", c->nombre);
-    fgets(buffer, sizeof(buffer), stdin);
-    if(buffer[0]!='\n'){
-        buffer[strcspn(buffer, "\n")] = '\0';
-        strcpy(c->nombre, buffer);
-    }
-
-    printf("Telefono [%s]: ", c->telefono);
-    fgets(buffer, sizeof(buffer), stdin);
-    if(buffer[0]!='\n'){
-        buffer[strcspn(buffer, "\n")] = '\0';
-        strcpy(c->telefono, buffer);
-    }
-
-    printf("Email [%s]: ", c->email);
-    fgets(buffer, sizeof(buffer), stdin);
-    if(buffer[0]!='\n'){
-        buffer[strcspn(buffer, "\n")] = '\0';
-        strcpy(c->email, buffer);
-    }
-
-    printf("Contacto actualizado.\n");
-}
-
-void eliminarContacto(){
-    int id;
-    printf("ID del contacto a eliminar: ");
-    scanf("%d", &id);
-    getchar();
-    int indice=-1;
-    for(int i=0;i<numContactos;i++){
-        if(contactos[i]->id==id){
-            indice=i;
-            break;
-        }
-    }
-    if(indice==-1){
-        printf("Contacto no encontrado\n");
-        return;
-    }
-    liberarHistorial(contactos[indice]->historialLlam);
-    free(contactos[indice]);
-    for(int i=indice;i<numContactos-1;i++){
-        contactos[i]=contactos[i+1];
-    }
-    numContactos--;
-    printf("Contacto eliminado\n");
-}
-
-void listarContactos(){
-    if(numContactos==0){
-        printf("No hay contactos\n");
-        return;
-    }
-    for(int i=0;i<numContactos;i++){
-        printf(COLOR_BORDE "+----------------------------------+\n" COLOR_RESET);
-        printf(" ID: %d\n", contactos[i]->id);
-        printf(" Nombre: %s\n", contactos[i]->nombre);
-        printf(" Telefono: %s\n", contactos[i]->telefono);
-        printf(" Email: %s\n", contactos[i]->email);
-        printf(COLOR_BORDE "+----------------------------------+\n" COLOR_RESET);
-        printf("\n");
-    }
-}
-
-Contacto* buscarContactID(int id){
-    for(int i=0;i<numContactos;i++){
-        if(contactos[i]->id==id)
-            return contactos[i];
-    }
-    return NULL;
-}
-
-void registrarLlamada(){
-    int id;
-    printf("ID del contacto: ");
-    scanf("%d", &id);
-    getchar();
-    Contacto* c=buscarContactID(id);
-    if(!c){
-        printf("Contacto no encontrado.\n");
-        return;
-    }
-    char fecha[11], hora[6];
-    int duracion, tipoInt;
-    printf("Fecha (AAAA-MM-DD): ");
-    fgets(fecha, sizeof(fecha), stdin);
-    fecha[strcspn(fecha, "\n")] = '\0';
-    printf("Hora (HH:MM): ");
-    fgets(hora, sizeof(hora), stdin);
-    hora[strcspn(hora, "\n")] = '\0';
-    printf("Duracion (segundos): ");
-    scanf("%d", &duracion);
-    getchar();
-    printf("Tipo: 1=Entrante, 2=Saliente, 3=Perdida: ");
-    scanf("%d", &tipoInt);
-    getchar();
-    TipoLlamada tipo;
-    switch(tipoInt){
-        case 1: tipo=ENTRANTE; break;
-        case 2: tipo=SALIENTE; break;
-        case 3: tipo=PERDIDA; break;
-        default: printf("Tipo invalido, se asigna Perdida.\n"); tipo=PERDIDA;
-    }
-    agregarNodoLlamada(c, fecha, hora, duracion, tipo);
-    printf("Llamada registrada.\n");
-}
 
 void agregarNodoLlamada(Contacto* c, const char* fecha, const char* hora, int duracion, TipoLlamada tipo){
     NodoLlamada* nuevo=(NodoLlamada*)malloc(sizeof(NodoLlamada));
@@ -391,42 +184,6 @@ void agregarNodoLlamada(Contacto* c, const char* fecha, const char* hora, int du
         NodoLlamada* aux=c->historialLlam;
         while(aux->siguiente) aux=aux->siguiente;
         aux->siguiente=nuevo;
-    }
-}
-
-void mostrarContactHistorial(Contacto* c){
-    if(!c) return;
-
-    //Tarjeta del contacto
-    printf(COLOR_BORDE "+----------------------------------+\n");
-    printf("|            CONTACTO                 |\n");
-    printf("+----------------------------------+\n");
-    printf("| ID        : %d\n", c->id);
-    printf("| Nombre    : %s\n", c->nombre);
-    printf("| Telefono  : %s\n", c->telefono);
-    printf("| Email     : %s\n", c->email);
-    printf(COLOR_BORDE "+----------------------------------+\n" COLOR_RESET);
-
-    if(c->historialLlam==NULL){
-        printf(" No hay llamadas registradas.\n");
-        return;
-    }
-    printf("\n Historial de llamadas:\n");
-    printf(" %-12s %-6s %-8s %-12s\n", "Fecha", "Hora", "Duracion", "Tipo");
-    printf(" ------------ ------ -------- ------------\n");
-
-    NodoLlamada* actual=c->historialLlam;
-    while(actual){
-        const char* color;
-        switch(actual->tipo){
-            case SALIENTE: color=COLOR_VERDE; break;
-            case PERDIDA: color=COLOR_ROJO; break;
-            default: color=COLOR_AMARILLO; break;
-        }
-        printf(" %s%-12s %-6s %-8d %-12s%s\n",
-        color, actual->fecha, actual->hora, actual->duracion,
-        tipoToString(actual->tipo), COLOR_RESET);
-        actual=actual->siguiente;
     }
 }
 
