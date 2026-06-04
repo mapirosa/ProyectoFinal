@@ -188,10 +188,8 @@ void agregarNodoLlamada(Contacto* c, const char* fecha, const char* hora, int du
 }
 
 void guardar(){
-
     FILE* fb=fopen("contactos.dat", "wb");
     if(!fb){
-        printf("Error al guardar contactos\n");
         return;
     }
     fwrite(&numContactos, sizeof(int), 1, fb);
@@ -204,26 +202,26 @@ void guardar(){
 
     FILE* ft=fopen("historial.txt", "w");
     if(!ft){
-        printf("Error al guardar historial\n");
         return;
     }
     for(int i=0;i<numContactos;i++){
         NodoLlamada* actual=contactos[i]->historialLlam;
         while(actual){
             fprintf(ft, "%d|%s|%s|%d|%s\n",
-            contactos[i]->id, actual->fecha, actual->hora,
-            actual->duracion, tipoToString(actual->tipo));
+                contactos[i]->id, actual->fecha, actual->hora,
+                actual->duracion, tipoToString(actual->tipo));
             actual=actual->siguiente;
         }
     }
     fclose(ft);
-    printf("Datos guardados correctamente\n");
 }
 
 void cargar(){
-    FILE* fb=fopen("Contactos.dat", "rb");
+    FILE* fb=fopen("contactos.dat", "rb");
+    char linea[200];
+
     if(!fb){
-        printf("No se encontr� contactos.dat. Iniciando con agenda vac�a.\n");
+        //printf("No se encontro contactos.dat. Iniciando con agenda vaci.\n");
         return;
     }
 
@@ -236,11 +234,6 @@ void cargar(){
 
     capacidadContactos=num;
     contactos=(Contacto**)malloc(capacidadContactos * sizeof(Contacto*));
-    if(!contactos){
-        fclose(fb);
-        printf("Error de memoria\n");
-        return;
-    }
 
     for(int i=0;i<num;i++){
         Contacto* c=(Contacto*)malloc(sizeof(Contacto));
@@ -254,29 +247,31 @@ void cargar(){
 
     FILE* ft=fopen("historial.txt", "r");
     if(!ft){
-        printf("No se encontr� historial.txt\n");
+        //printf("No se encontro historial.txt\n");
         return;
     }
 
-    char linea[200];
     while(fgets(linea,sizeof(linea),ft)){
         linea[strcspn(linea, "\n")] = '\0';
-        int id;
-        char fecha[11], hora[6];
-        int duracion;
-        char tipoStr[20];
-        int parsed=sscanf(linea, "%d|%10[^|]|%5[^|]|%d|%19[^\n]", 
-            &id, fecha, hora, &duracion, tipoStr);
-        if(parsed==5) continue;
+        int id,duracion;
+        char fecha[11], hora[6],tipStr[12];
+        if (sscanf(linea, "%d|%10[^|]|%5[^|]|%d|%11s", &id, fecha, hora, &duracion, tipoStr) != 5)
+            continue;
 
-        Contacto* c=buscarContactID(id);
+        Contacto* c=NULL;
+        for(int i=0;i<numContactos;i++){
+            if(contactos[i]->id==id){
+                c=contactos[i];
+                break;
+            }
+        }
+
         if(c){
-            TipoLlamada tipo=stringToTipo(tipoStr);
-            agregarNodoLlamada(c, fecha, hora, duracion, tipo);
+            agregarNodoLlamada(c, fecha, hora, duracion, stringToTipo(tipoStr));
         }
     }
     fclose(ft);
-     printf("Datos cargados: %d contactos\n", numContactos);
+    //printf("Datos cargados: %d contactos\n", numContactos);
 }
 
 void liberarHistorial(NodoLlamada* cabeza){
@@ -310,3 +305,4 @@ TipoLlamada stringToTipo(const char* str){
     if(strcmp(str, "Saliente")==0) return SALIENTE;
     return PERDIDA;
 }
+
