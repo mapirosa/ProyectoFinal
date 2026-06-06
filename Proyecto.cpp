@@ -101,7 +101,7 @@ typedef enum{
 }TipLlam;
 
 typedef struct NodoLlam{
-    char ffecha[11];
+    char fecha[11];
     char hora[6];
     int duracion;
     TipLlam tipo;
@@ -126,7 +126,7 @@ static int inputMode=0;
 static char tempNomb[100]="";
 static char tempTel[20]="";
 static char tempEmail[100]="";
-static char tempFech[11]="";
+static char tempFecha[11]="";
 static char tempHr[6]="";
 static int tempDurac=0;
 static int tempTip= 1;
@@ -171,7 +171,7 @@ int main(){
 
 //........Dibujo de Pantallas.........
 
-void DibujarMenu(){
+void DibMenu(){
    Drawrectangle(0, 0, SCREEN_HEIGHT, LIGHTGRAY);
     DrawText("Agenda telefonica", SCREEN_WIDTH/2 - MeasureText("Agenda Telefonica", 40)/2, 50, 40, DARKBLUE);
 
@@ -181,26 +181,26 @@ void DibujarMenu(){
     static bool hover1=false, hover2=false, hover3=false, hover4=false, hover5=false;
 
     Rectangle btnLista = {(float)startX, (float)y, (float)btnH};
-    DibujarBoton(btnLista, "Ver Contactos", SKYBLUE, BLUE; &hover2);
-    if (BotonPresionando(btnLista, hovrr1)) estadoActual = LISTA_CONTACTOS;
+    DibBot(btnLista, "Ver Contactos", SKYBLUE, BLUE; &hover2);
+    if (BotPress(btnLista, hover1)) esdoActual = LISTA_CONTACTOS;
 
     Rectangle btnAgregar = {(float)startX, (float)(y+70), (float)btnW, (float)btnH};
-    DibujarBoton(btnSalir, "Salir", RED, MAROON, 6hover5);
-    if (BotonPresionado(btnSalir, hover5)){
-        guardarTodo();
+    DibBot(btnSalir, "Salir", RED, MAROON, &hover5);
+    if (BotPress(btnSalir, hover5)){
+        guardar();
         ClosetWindow();
         exit(0);
     }  
 }
 
-void DibujarListaContactos(){
-   Drawrectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, LIGHTGRAY);
-    DrawText("Lista de COntactos", 20, 20, 30, DARKBLUE);
+void DibListaContac(){
+   DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, LIGHTGRAY);
+    DrawText("Lista de Contactos", 20, 20, 30, DARKBLUE);
 
     Rectangle btnVolver = {20.0f, (float)(SCREEN_HEIGHT-60), 120.0f, 40.0f};
     bool hoverVolver = false;
-    DinujarBoton(btnVolver, "Volver", GRAY; DARKGRAY; &hoverVolver);
-    if (BotonPresionado(btnVolver, hoverVolver)) estadoActual = MENU_PRINCIPAL;
+    DibBot(btnVolver, "Volver", GRAY; DARKGRAY; &hoverVolver);
+    if (BotPress(btnVolver, hoverVolver)) estadoActual = MENU_PRINCIPAL;
 
     if (numContactos == 0){
         DrawText("No hay contactos registrados.", SCREEN_WIDTH/2 - MeasureText("NO hay contactos registrados.", 20)/2, SCREEN_HEIGHT/2, 20, DARKGRAY);
@@ -243,24 +243,24 @@ void DibujarListaContactos(){
 
         if(hoverH && IsMausePressed(MOUSE_BUTTON_LEFT)){
             contactoActual = contactos[i];
-            estadoActual = VER_HISTORIAL;
+            edoActual = VER_HISTORIAL;
         }
         if(hoverE && IsMauseButtonPressed(MOUSE_BUTTON_LEFT)){
-            contactoActual = contactos[i];
-            strcpy(tempNombre, contactoActual->nombre);
-            strcpy(tempTelefono, contactoActual->telefono);
-            strcpy(tempEmail, contactoActual->email);
-            estadoActual = EDITAR_CONTACTO;
+            contactAct = contactos[i];
+            strcpy(tempNomb, contacAct->nombre);
+            strcpy(tempTel, contactAct->telefono);
+            strcpy(tempEmail, contactAct->email);
+            edoActual = EDITAR_CONTACTO;
             inputMode = 0;
         }
         if (hoverD && IsMauseButtonPressed(MOUSE_BUTTON_LEFT)){
-            contactoActual = contactos[i];
-            estadoActual = CONFIRMAR_ELIMINAR;
+            contactAct = contactos[i];
+            edoAct = CONFIRMAR_ELIMINAR;
         }   
     }//for
 }//void
 
-void DibujarFormularioContacto(int esEdicion){
+void DibFormuContac(int esEdicion){
     DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, LIGHTGRAY);
     DrawText(esEdicion ? "Editar Contacto" : "Nuevo Contactto", 20, 20, 30, DARKBLUE);
 
@@ -274,34 +274,34 @@ void DibujarFormularioContacto(int esEdicion){
         DrawRectangleLines((float)fieldX, (float)startY-5, (float)fieldW, 30.0f, RED);
         int key = GetCharPressed();
         while (key > 0){
-            if(key >=32 && key <=125 && strlen(tempNombre) < 99){
-                int len = strlen(tempNombre); 
-                tempNombre[len] = (char)key;
-                tempNombre[len+1] = '\0'; 
+            if(key >=32 && key <=125 && strlen(tempNomb) < 99){
+                int len = strlen(tempNomb); 
+                tempNomb[len] = (char)key;
+                tempNomb[len+1] = '\0'; 
             }
             key = GetCharPressed();      
         }//whille
-        if (IsKeyPressed(KEY_BACKSPACE) && strlen(tempNombre) > 0)
-            tempNombre[strlen(tempNombre)-1] = '\0';
+        if (IsKeyPressed(KEY_BACKSPACE) && strlen(tempNomb) > 0)
+            tempNomb[strlen(tempNomb)-1] = '\0';
     }//if
 
     DrawText("Telefono: ", labelX, startY+50, 20, BLACK);
     DrawRectangle((float)fieldX, (float)startY+45, (float)fieldW, 30.0f, WHITE);
     DrawRectangleLines((float)fieldX, (float)startY+45, (float)fieldW, 30.0f, GRAY);
-    DrawText(tempTelefono, fieldX+5, startY+50, 20, BLACK);
+    DrawText(tempTel, fieldX+5, startY+50, 20, BLACK);
     if (inputMode == 1){
         DrawRectangleLines((float)fieldX, (float)startY+45, (float)fieldW, 30.0f, RED);
         int key = GetCharPressed();
         while (key > 0){
-            if(key >=32 && key <=125 && strlen(tempTelefono) < 19){
-                int len = strlen(tempTelefono);
-                tempTelefono[len] = (char)key;
-                tempTelefono[len+1] = '\0'; 
+            if(key >=32 && key <=125 && strlen(tempTel) < 19){
+                int len = strlen(tempTel);
+                tempTel[len] = (char)key;
+                tempTel[len+1] = '\0'; 
             }
             key = GetCharPressed();      
         }//whille
-        if (IsKeyPressed(KEY_BACKSPACE) && strlen(tempTelefono) > 0)
-            tempTelefono[strlen(tempTelefono)-1] = '\0';
+        if (IsKeyPressed(KEY_BACKSPACE) && strlen(tempTel) > 0)
+            tempTel[strlen(tempTel)-1] = '\0';
     }//if
 
     DrawText("Email: ", labelX, startY+100, 20, BLACK);
@@ -330,15 +330,15 @@ void DibujarFormularioContacto(int esEdicion){
     Rectangle btnGuardar = {200.0f, (float)startY+170, 120.0f, 40.0f};
     Rectangle btnCancelar = {350.0f, (float)startY+170, 120.0f, 40.0f};
     bool hoverG = false, hoverC = false;
-    DibujarBoton(btnGuardar, "Guardar", GREEN, DARKGREEN, &hoverG);
-    DibujarBoton(btnCancelar, "Cancerlar", RED, MAROON, &hoverC);
+    DibBot(btnGuardar, "Guardar", GREEN, DARKGREEN, &hoverG);
+    DibBot(btnCancelar, "Cancerlar", RED, MAROON, &hoverC);
 
-    if (BotonPresionado(btnGuardar, hoverG){
+    if (BotPress(btnGuardar, hoverG){
         if(esEdicion){
-            strcpy(contactoActual->nombre, tempNombre);
-            strcpy(contactoActual->telefono, tempTelefono);
-            strcpy(contactoActual->email, tempEmail);
-            MostrarMensaje("Contacto actualizado.");
+            strcpy(contactAct->nombre, tempNomb);
+            strcpy(contactAct->telefono, tempTel);
+            strcpy(contactAct->email, tempEmail);
+            MostMsj("Contacto actualizado.");
         }else{
             if(numContactos == capacidadContactos){
                 capacidadContactos = capacidadContactos==0 ? 5 : capacidadContactos*2;
@@ -346,32 +346,32 @@ void DibujarFormularioContacto(int esEdicion){
             }
             Contacto* nuevo = (Contacto*)malloc(sizeof(Contacto));
             nuevo -> id = numContactos+1;
-            strcpy(contactoActual->nombre, tempNombre);
-            strcpy(contactoActual->telefono, tempTelefono);
-            strcpy(contactoActual->email, tempEmail);
+            strcpy(contactAct->nombre, tempNomb);
+            strcpy(contactAct->telefono, tempTel);
+            strcpy(contactAct->email, tempEmail);
             nuevo -> historial = NULL;
             contactos[numContactos++] = nuevo;
-            MostrarMensaje("Contacto Agregado.");
+            MostMsj("Contacto Agregado.");
         }//else
-        estadoActual = MENU_PRINCIPAL; 
+        edoActual = MENU_PRINCIPAL; 
     }//if
-    if(BotonPresionado(btnCancelar, hoverC)){
+    if(BotPress(btnCancelar, hoverC)){
         estadoActual = MENU_PRINCIPAL;
     }    
 }//Void
 
-void DibujarHistorial(Contacto* c){
+void DibHist(Contacto* c){
     DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, LIGHTGRAY);
     DrawText(TextFormat("Historial de %s", c->nombre), 20, 20, 30, DARKBLUE);
 
     Rectangle btnVolver = {20.0f, (float)(SCREEN_HEIGHT-60), 120.0f, 40.0f};
     Rectangle btnRegistrar = {(float)(SCREEN_WDTH-140), (float)(SCREEN_HEIGHT-60), 120.0f, 40.0f};
     bool hoverV = false, hoverR = false;
-    DibujarBoton(btnVolver, "Volver", GRAY, DARKGRAY, &hoverV);
-    DibujarBoton(btnRegistrar, "Registrar Llamada", SKYBLUE, BLUE, &hoverR);
+    DibBot(btnVolver, "Volver", GRAY, DARKGRAY, &hoverV);
+    DibBot(btnRegistrar, "Registrar Llamada", SKYBLUE, BLUE, &hoverR);
 
-    if(BotonPresionado(btnVolver, hoverV)) estadoActual = MENU_ACTUAL;
-    if(BotonPresionado(btnRegresar, hoverR)) estadoActual = REGISTRAR_LLAMADA;
+    if(BotPress(btnVolver, hoverV)) edoActual = MENU_ACTUAL;
+    if(BotPress(btnRegresar, hoverR)) edoActual = REGISTRAR_LLAMADA;
 
     if(!c->historial){
         DrawText("No hay llamadas registradas.", SCREEN_WIDTH/2 - MeasureText("NO hay llamadas registradas". 20)/2, 200, 20, DARKGRAY);
@@ -379,7 +379,7 @@ void DibujarHistorial(Contacto* c){
     }
 
     int y = 100;
-    NodoLlamada* aux = c->historial;
+    NodLlam* aux = c->historial;
     while(aux){
         const char* tipoStr = tipoToString(auz->tipo);
         Color color = aux->tipo==SALIENTE ? GREEN : (aux->tipo==ENTRANTE ? YELLOW : RED);
@@ -390,7 +390,7 @@ void DibujarHistorial(Contacto* c){
     }//while
 }//void
 
-void DibujarFormularioLlamada(Contacto* c){
+void DibFormuLlam(Contacto* c){
     DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, LIGHTGRAY);
     DrawText(TextFormat("Registrar Llamada para %s", c->nombre), 20, 20, 30, DARKBLUE);
 
@@ -420,20 +420,20 @@ void DibujarFormularioLlamada(Contacto* c){
     DrawText("Hora (HH:MM): ", labelX, startY+50, 20, BLACK);
     DrawRectangle((float)fieldX, (float)startY+45, (float)fieldW, 30.0f, WHITE);
     DrawRectangleLines((float)fieldX, (float)startY+45, (float)fieldW, 30.0f, GRAY);
-    DrawText(tempHora, fieldX+5, startY+50, 20, BLACK);
+    DrawText(tempHr, fieldX+5, startY+50, 20, BLACK);
     if(inputMode==4){
        DrawRectangleLines((float)fieldX, (float)startY+45, (float)fieldW, 30.0f, RED);
         int key = GetCharPressed();
         while(key>0){
-            if(key>=32 && key<=125 && strlen(tempHora) < 5){
-                int len= strlen(tempHora);
-                tempHora[len] = (char)key;
-                tempHora[len+1]='\0';
+            if(key>=32 && key<=125 && strlen(tempHr) < 5){
+                int len= strlen(tempHr);
+                tempHr[len] = (char)key;
+                tempHr[len+1]='\0';
             }
             key = GetCharPressed();
         }//While
-        if (IsKeyPressed(KEY_BACKSPACE) && strlen(tempHora) > 0)
-            tempHora[strlen(tempHora)-1] = '\0';
+        if (IsKeyPressed(KEY_BACKSPACE) && strlen(tempHr) > 0)
+            tempHora[strlen(tempHr)-1] = '\0';
     }//if
 
     //DURACION
@@ -441,15 +441,15 @@ void DibujarFormularioLlamada(Contacto* c){
     DrawRectangle((float)fieldX, (float)startY+95, (float)fieldW, 30.0f, WHITE);
     DrawRectangleLines((float)fieldX, (float)startY+95, (float)fieldW, 30.0f, GRAY);
     char durBuf[10];
-    sprintf(durBuf, "%d", tempDuracion);
+    sprintf(durBuf, "%d", tempDurac);
     DrawText(durBuf, fieldX+5, startY+100, 20, BLACK);
     if(inputMode == 5){
         DrawRectangle((float)fieldX, (float)startY+95, (float)fieldW, 30.0f, RED);
         int key = GetCharPressed();
         if(key >= '0' && key <= '9'){
-            tempDuracion = tempDuracion * 10 + (key - '0');
+            tempDurac = tempDurac * 10 + (key - '0');
         }
-        if (IsKeyPressed(KEY_BACKSPACE)) tempDuracion /= 10;
+        if (IsKeyPressed(KEY_BACKSPACE)) tempDurac /= 10;
     }
 
     //TIPO
@@ -457,11 +457,11 @@ void DibujarFormularioLlamada(Contacto* c){
     const char* tipos[] = {"Entrante", "Saliente", "Perdida"};
     for(int i=0; i<3; i++){
         rectangle btnTipo = {(float)(fieldX + i*100), (float)startY+145, 90.0f, 30.0f};
-        Color col = (tempTipo == i+1) ? BLUE : GRAY; 
+        Color col = (tempTip == i+1) ? BLUE : GRAY; 
         DrawRectangleRec(btnTipo, col);
         DrawText(tipos[i], (int)btnTipo.x+5, (int)btnTipo.y+5, 15, WHITE);
         if (CheckCollisionPointRec(GetMousePosition(), btnTipo) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
-            tempTipo = i+1;
+            tempTip = i+1;
     }
 
     if(IsKeyPressed(KEY:TAB)){
@@ -472,58 +472,58 @@ void DibujarFormularioLlamada(Contacto* c){
     Rectangle btnGuardar = {200.0f, (float)startY+220, 120.0f, 40.0f};
     Rectangle btnCancelar = {350.0f, (float)startY+220, 120.0f, 40.0f};
     bool haverG = false, hoverC = false;
-    DibujarBoton(btnGuardar, "Guardar", GREEN, DARKGREEN, &hoverG);
-    DibujarBoton(btnCancelar, "Cancelar", RED, MAROON, &hoverC);
+    DibBot(btnGuardar, "Guardar", GREEN, DARKGREEN, &hoverG);
+    DibBot(btnCancelar, "Cancelar", RED, MAROON, &hoverC);
 
-    if(BotonPresionado(btnGuardar, hoverG){
-        if(strlen(tempFecha)==10 && strlen(tempHora)==5 && tempDuracion>0){
-            agregarNodoLlamada(c, tempFecha, tempHora, tempDuracion, (TipoLlamada)(TempTipo-1));
+    if(BotPress(btnGuardar, hoverG){
+        if(strlen(tempFecha)==10 && strlen(tempHr)==5 && tempDurac>0){
+            agregarNodoLlamada(c, tempFecha, tempHr, tempDurac, (TipoLlamada)(TempTipo-1));
             memset(tempFecha, 0, sizeof(tempFecha));
-            memset(tempHora, 0, sizeof(tempHora));
-            tempDuracion = 0;
-            MostrarMensaje("LLamada registrada.");
-            estadoActual = VER_HISTORIAL;
+            memset(tempHr, 0, sizeof(tempHora));
+            tempDurac = 0;
+            MostMsj("LLamada registrada.");
+            edoActual = VER_HISTORIAL;
         }else{
-            MostrarMensaje("Datos Invalidos.");
+            MostMsj("Datos Invalidos.");
         }
     }
-    if (BotonPresionado(btnCancelar, hoverC)) {
-        estadoActual = VER_HISTORIAL;
+    if (BotPress(btnCancelar, hoverC)) {
+        edoActual = VER_HISTORIAL;
     }  
 }//void
 
-void DibujarConfirmacionElimnar(){
+void DibConfirmElimin(){
     DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, Fade(BLACK, 0.7f));
     int boxW = 400, boxH=150;
     int x = SCREEN_WIDTH/2 - boxW/2;
     int y = SCREEN_HIGTH/2 - boxH/2; 
     DrawRectangle((float)x, (float)y, (float)boxW, (float)boxH, LIGHTGRAY);
     DrawRectangleLines((float)x, (float)y, (float)boxW, (float)boxH, DARKGRAY);
-    DrawText(TextFormat("Eliminar a %s?", contactoActual->nombre), x+20, y+30, 20, BLACK);
+    DrawText(TextFormat("Eliminar a %s?", contactAct->nombre), x+20, y+30, 20, BLACK);
     Rectangle btnSi = {(float)(x+50), (float)(y+90), 80.0f, 40.0f};
     Rectangle btnNo = {(float)(x+bowX-130), (float)(y+90), 80.0f, 40.0f};
     bool hoverSi=false, hoverNo=false;
-    DibujarBoton(btnSi, "Si", RED, MAROON, &hoverSi);
-    DibujarBoton(btnNo, "No", GRAY, DARKGRAY, &hoverNo);
+    DibBot(btnSi, "Si", RED, MAROON, &hoverSi);
+    DibBot(btnNo, "No", GRAY, DARKGRAY, &hoverNo);
 
-    if (BotonPresionado(btnSi, hoverSi){
+    if (BotPress(btnSi, hoverSi){
         for(int i=0; i<numContactos; i++)
-            if(contactos[i]->id == contactoActual->id) {idx = i; break;}
+            if(contactos[i]->id == contactAct->id) {idx = i; break;}
         if (idx != -1){
-            liberarHistoria(contactos[idx]->historial);
+            liberarHist(contactos[idx]->historial);
             free(contactos[idx]);
-            for(int i=idx; i<numContactos-1; i++) cpntactos[i] = contactos[i+1];
+            for(int i=idx; i<numContactos-1; i++) contactos[i] = contactos[i+1];
             numContactos--M
         }//if
-        MostrarMensaje("Contacto Eliminado.");
-        estadoActual =MENU_PRINCIPAL;
+        MostMsj("Contacto Eliminado.");
+        edoActual =MENU_PRINCIPAL;
     }//if
-    if(BotonPresionado(btnNo, hoverNo)){
-        estadoActual = LISTA_CONTACTOS;
+    if(BotPress(btnNo, hoverNo)){
+        edoActual = LISTA_CONTACTOS;
     }
 }//void
 
-void DibujarMensaje(){
+void DibMsj(){
     DrawRectangle(0, 0, SCREEN_HEIGHT, Fade(BLACK, 0.6f));
     int ancho = MeasureText(mensajeTexto, 20)+40;
     int alto = 50;
@@ -533,13 +533,13 @@ void DibujarMensaje(){
     DrawText(mensajeTexto, x+20, y+15, 20, WHITE);
 }//void
 
-void MostrarMensaje(const char* texto){
+void MostMsj(const char* texto){
     strcpy(mensajeTexto, texto);
     mensajeTiempo = GetTime();
-    estadoActual = MENSAJE;
+    edoActual = MENSAJE;
 }
 
-void DibujarBoton(Rectangle rect, const char* texto, Color coloBase, Color coloHover, bool* hover){
+void DibBot(Rectangle rect, const char* texto, Color coloBase, Color coloHover, bool* hover){
     *hover = CheckCollisionPointRec(GetMousePosition(), rect);
     Color color = *hover ? colorHover : colorBase;
     DrawRectangleRec(rect, color);
@@ -549,7 +549,7 @@ void DibujarBoton(Rectangle rect, const char* texto, Color coloBase, Color coloH
     DrawText(texto, tx, ty, 20, WHITE);
 }
 
-bool BotonPresionado(Rectangle rect, bool hover){
+bool BotPres(Rectangle rect, bool hover){
     return hover && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
 }
 
