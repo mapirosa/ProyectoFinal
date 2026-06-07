@@ -29,7 +29,7 @@ typedef struct NodoLlamada {
     struct NodoLlamada* siguiente;
 } NodoLlamada;
 
-//contacto
+//contacto, lo mas importante
 typedef struct Contacto {
     int id;
     char nombre[100];
@@ -122,19 +122,22 @@ static double mensajeTiempo = 0;
 
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Agenda Telefonica Grafica");
-    SetTargetFPS(60);
-    InitAudioDevice();
+    SetTargetFPS(60); //60 fps
+    InitAudioDevice(); //sonifo activado
 
-    cargar();
+    cargar(); //carga datos de los arch bin y txt
 
-    while (!WindowShouldClose()) {
-        if (edoActual == MENSAJE && GetTime() - mensajeTiempo > 2.0) {
-            edoActual = edoPrevio;
-        }
+    while (!WindowShouldClose()) { //hasta que se cierre la ventana no me apago mijo
+        if (edoActual == MENSAJE && (GetTime()-mensajeTiempo)> 2.0) {
+            edoActual=edoPrevio;
+        }//si estoy mostrando un mensaje y ya pasaron 2 segundos, vuelvo al edo previo
+        //else
+        BeginDrawing(); //empieza a chambear bro
+        ClearBackground(RAYWHITE); //dibuja un rectangulo que ocupe toda la pantalla
 
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
-
+        //aqui ocurre la magia bro:
+        /* la pantalla se imprime muchas veces x segundo
+        dependiendo de edoActual, es la pantalla que se imprime*/
         switch (edoActual) {
             case MENU_PRINCIPAL: DibMenu(); break;
             case LISTA_CONTACTOS: DibListaContac(); break;
@@ -145,42 +148,40 @@ int main() {
             case CONFIRMAR_ELIMINAR: DibConfirmElimin(); break;
             case MENSAJE: DibMsj(); break;
         }
-
-        EndDrawing();
+        EndDrawing();//ya termino tu jornada laboral, te vo´a pagar menos del salario minimo muahahahhahaha
     }
-
-    guardar();
-    liberarTodo();
-    CloseWindow();
+    guardar();//que no se te borre el historial!!!
+    liberarTodo();//liberar memoria :v
+    CloseWindow();//cierra la ventana, hace frio 
     return 0;
 } 
 
 //........Dibujo de Pantallas.........
 
-void DibMenu() {
+void DibMenu(){
     DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, LIGHTGRAY);
-    DrawText("Agenda telefonica", SCREEN_WIDTH / 2 - MeasureText("Agenda Telefonica", 40) / 2, 50, 40, DARKBLUE);
+    DrawText("Agenda telefonica del cel de Tu mama", SCREEN_WIDTH/2-MeasureText("Agenda Telefonica del cel de Tu mama", 40)/2,50,40, DARKBLUE);
 
-    int btnW = 200, btnH = 50;
-    int startX = SCREEN_WIDTH / 2 - btnW / 2;
-    int y = 150;
-    static bool hover1 = false, hover2 = false, hover3 = false;
+    int btnW =200, btnH =50;
+    int startX =SCREEN_WIDTH/2-btnW/2;
+    int y =150;
+    static bool hover1=false, hover2=false, hover3=false;
 
-    Rectangle btnLista = { (float)startX, (float)y, (float)btnW, (float)btnH };
+    Rectangle btnLista ={(float)startX, (float)y, (float)btnW, (float)btnH}; //dibuja boton lista contactos
     DibBot(btnLista, "Ver Contactos", SKYBLUE, BLUE, &hover1);
-    if (BotPress(btnLista, hover1)) edoActual = LISTA_CONTACTOS;
+    if (BotPress(btnLista, hover1))edoActual = LISTA_CONTACTOS; //se se presiona, cambai de pantalla
 
-    Rectangle btnAgregar = { (float)startX, (float)(y + 70), (float)btnW, (float)btnH };
+    Rectangle btnAgregar={(float)startX, (float)(y + 70), (float)btnW, (float)btnH};//boton agregar contacto
     DibBot(btnAgregar, "Agregar Contacto", GREEN, DARKGREEN, &hover2);
-    if (BotPress(btnAgregar, hover2)) {
+    if (BotPress(btnAgregar, hover2)){
         memset(tempNomb, 0, sizeof(tempNomb));
         memset(tempTel, 0, sizeof(tempTel));
         memset(tempEmail, 0, sizeof(tempEmail));
-        inputMode = 0;
-        edoActual = AGREGAR_CONTACTO;
+        inputMode= 0;
+        edoActual= AGREGAR_CONTACTO;
     }
 
-    Rectangle btnSalir = { (float)startX, (float)(y + 140), (float)btnW, (float)btnH };
+    Rectangle btnSalir={(float)startX, (float)(y + 140), (float)btnW, (float)btnH}; //lo mismo
     DibBot(btnSalir, "Salir", RED, MAROON, &hover3);
     if (BotPress(btnSalir, hover3)) {
         guardar();
@@ -189,48 +190,50 @@ void DibMenu() {
     }
 } //void
 
-void DibListaContac() {
+void DibListaContac(){
     DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, LIGHTGRAY);
     DrawText("Lista de Contactos", 20, 20, 30, DARKBLUE);
 
-    Rectangle btnVolver = { 20.0f, (float)(SCREEN_HEIGHT - 60), 120.0f, 40.0f };
-    bool hoverVolver = false;
+    Rectangle btnVolver ={ 20.0f, (float)(SCREEN_HEIGHT - 60), 120.0f, 40.0f};
+    bool hoverVolver =false;
     DibBot(btnVolver, "Volver", GRAY, DARKGRAY, &hoverVolver);
-    if (BotPress(btnVolver, hoverVolver)) edoActual = MENU_PRINCIPAL;
+    if (BotPress(btnVolver, hoverVolver)) edoActual =MENU_PRINCIPAL;
 
     if (numContactos == 0) {
-        DrawText("No hay contactos registrados.", SCREEN_WIDTH / 2 - MeasureText("No hay contactos registrados.", 20) / 2, SCREEN_HEIGHT / 2, 20, DARKGRAY);
+        DrawText("No hay contactos registrados.", SCREEN_WIDTH/2-MeasureText("No hay contactos registrados.", 20) / 2, SCREEN_HEIGHT / 2, 20, DARKGRAY);
         return;
     }
 
-    int itemHeight = 50;
-    int startY = 80;
-    int visibleItems = (SCREEN_HEIGHT - 140) / itemHeight;
-    int maxScroll = numContactos - visibleItems;
+    int itemHeight=50;
+    int startY= 80;
+    int visibleItems=(SCREEN_HEIGHT-140)/itemHeight;
+    int maxScroll =numContactos-visibleItems;
 
-    if (maxScroll < 0) maxScroll = 0;
+    //scroll
+    if (maxScroll < 0)maxScroll= 0;
     if (IsKeyPressed(KEY_UP)) scrollOffset--;
     if (IsKeyPressed(KEY_DOWN)) scrollOffset++;
     if (scrollOffset < 0) scrollOffset = 0;
-    if (scrollOffset > maxScroll) scrollOffset = maxScroll;
+    if (scrollOffset>maxScroll)scrollOffset= maxScroll;
 
-    for (int i = scrollOffset; i < scrollOffset + visibleItems && i < numContactos; i++) {
-        int y = startY + (i - scrollOffset) * itemHeight;
-        Rectangle itemRect = { 20.0f, (float)y, (float)(SCREEN_WIDTH - 40), (float)(itemHeight - 2) };
-        Color bg = (i == selectedContactIndex) ? SKYBLUE : WHITE;
+    for (int i=scrollOffset; i<scrollOffset+visibleItems && i<numContactos; i++){//calcula la posic. de cada contacto
+        int y= startY+(i-scrollOffset) * itemHeight;
+        Rectangle itemRect= {20.0f, (float)y, (float)(SCREEN_WIDTH-40), (float)(itemHeight-2)};
+        Color bg=(i ==selectedContactIndex) ? SKYBLUE : WHITE;
         DrawRectangleRec(itemRect, bg);
         DrawRectangleLinesEx(itemRect, 1, DARKGRAY);
-        DrawText(TextFormat("%d. %s", contactos[i]->id, contactos[i]->nombre), 30, y + 15, 20, BLACK);
+        DrawText(TextFormat("%d. %s", contactos[i]->id, contactos[i]->nombre), 30, y+15, 20, BLACK);
 
-        Rectangle btnHistorial = { (float)(SCREEN_WIDTH - 240), (float)(y + 5), 70.0f, 40.0f };
-        Rectangle btnEditar = { (float)(SCREEN_WIDTH - 160), (float)(y + 5), 70.0f, 40.0f };
-        Rectangle btnEliminar = { (float)(SCREEN_WIDTH - 80), (float)(y + 5), 70.0f, 40.0f };
+        Rectangle btnHistorial= {(float)(SCREEN_WIDTH - 240), (float)(y + 5), 70.0f, 40.0f };
+        Rectangle btnEditar= {(float)(SCREEN_WIDTH - 160), (float)(y + 5), 70.0f, 40.0f };
+        Rectangle btnEliminar= { (float)(SCREEN_WIDTH - 80), (float)(y + 5), 70.0f, 40.0f };
+        
+        //botones de cada contacto, individualmente
+        bool hoverH= CheckCollisionPointRec(GetMousePosition(), btnHistorial); //revisa si hay colison entre el mouse y el boton
+        bool hoverE= CheckCollisionPointRec(GetMousePosition(), btnEditar); //si hay colision y se presiona el boton, se cambia de pantalla
+        bool hoverD= CheckCollisionPointRec(GetMousePosition(), btnEliminar);
 
-        bool hoverH = CheckCollisionPointRec(GetMousePosition(), btnHistorial);
-        bool hoverE = CheckCollisionPointRec(GetMousePosition(), btnEditar);
-        bool hoverD = CheckCollisionPointRec(GetMousePosition(), btnEliminar);
-
-        DrawRectangleRec(btnHistorial, hoverH ? GREEN : DARKGREEN);
+        DrawRectangleRec(btnHistorial, hoverH ? GREEN : DARKGREEN);//si el mouse esta sobre el boton, cambia de color
         DrawText("Hist", (int)btnHistorial.x + 15, (int)btnHistorial.y + 12, 15, WHITE);
         
         DrawRectangleRec(btnEditar, hoverE ? ORANGE : GOLD);
@@ -239,11 +242,11 @@ void DibListaContac() {
         DrawRectangleRec(btnEliminar, hoverD ? RED : MAROON);
         DrawText("X", (int)btnEliminar.x + 30, (int)btnEliminar.y + 12, 15, WHITE);
 
-        if (hoverH && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        if (hoverH && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
             contactoActual = contactos[i];
             edoActual = VER_HISTORIAL;
         }
-        if (hoverE && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        if (hoverE && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
             contactoActual = contactos[i];
             strcpy(tempNomb, contactoActual->nombre);
             strcpy(tempTel, contactoActual->telefono);
@@ -251,121 +254,126 @@ void DibListaContac() {
             edoActual = EDITAR_CONTACTO;
             inputMode = 0;
         }
-        if (hoverD && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            contactoActual = contactos[i];
-            edoActual = CONFIRMAR_ELIMINAR;
+        if (hoverD && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+            contactoActual= contactos[i];
+            edoActual= CONFIRMAR_ELIMINAR;
         }
     } //for
 } //void
 
-void DibFormuContac(int esEdicion) {
+void DibFormuContac(int esEdicion){
     DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, LIGHTGRAY);
     DrawText(esEdicion ? "Editar Contacto" : "Nuevo Contacto", 20, 20, 30, DARKBLUE);
 
-    int startY = 100, fieldW = 400, labelX = 100, fieldX = 200;
+    int startY=100, fieldW=400, labelX=100, fieldX=200;
 
+    //imputmode es el que dice en donde estoy escribiendo
     DrawText("Nombre: ", labelX, startY, 20, BLACK);
-    DrawRectangle((float)fieldX, (float)startY - 5, (float)fieldW, 30.0f, WHITE);
+    DrawRectangle((float)fieldX, (float)startY-5, (float)fieldW, 30.0f, WHITE);
     DrawRectangleLines((float)fieldX, (float)startY - 5, (float)fieldW, 30.0f, GRAY);
     DrawText(tempNomb, fieldX + 5, startY, 20, BLACK);
-    if (inputMode == 0) {
-        DrawRectangleLines((float)fieldX, (float)startY - 5, (float)fieldW, 30.0f, RED);
-        int key = GetCharPressed();
-        while (key > 0) {
-            if (key >= 32 && key <= 125 && strlen(tempNomb) < 99) {
-                int len = strlen(tempNomb);
-                tempNomb[len] = (char)key;
-                tempNomb[len + 1] = '\0';
+    if (inputMode== 0){
+        DrawRectangleLines((float)fieldX, (float)startY-5, (float)fieldW, 30.0f, RED); //si estoy en el campo nombre, dibuja un rectangulo rojo alrededor
+        int key=GetCharPressed();
+        while (key>0){ //mientras no apriete enter, sigue recibiendo caracteres
+            if (key>=32 && key <= 125 && strlen(tempNomb)<99){//si el caracter es imprimible y no se ha pasado del limite del campo, lo agrega al nombre
+                int len=strlen(tempNomb);
+                tempNomb[len]=(char)key;
+                tempNomb[len+1]='\0';
             }
-            key = GetCharPressed();
+            key=GetCharPressed();
         } //while
-        if (IsKeyPressed(KEY_BACKSPACE) && strlen(tempNomb) > 0)
-            tempNomb[strlen(tempNomb) - 1] = '\0';
+        if (IsKeyPressed(KEY_BACKSPACE) && strlen(tempNomb)>0) //borrar xb
+            tempNomb[strlen(tempNomb)-1] ='\0';
     } //if
 
+    //lo mismo pero para telefono y email
     DrawText("Telefono: ", labelX, startY + 50, 20, BLACK);
     DrawRectangle((float)fieldX, (float)startY + 45, (float)fieldW, 30.0f, WHITE);
     DrawRectangleLines((float)fieldX, (float)startY + 45, (float)fieldW, 30.0f, GRAY);
     DrawText(tempTel, fieldX + 5, startY + 50, 20, BLACK);
-    if (inputMode == 1) {
-        DrawRectangleLines((float)fieldX, (float)startY + 45, (float)fieldW, 30.0f, RED);
-        int key = GetCharPressed();
-        while (key > 0) {
-            if (key >= 32 && key <= 125 && strlen(tempTel) < 19) {
-                int len = strlen(tempTel);
-                tempTel[len] = (char)key;
-                tempTel[len + 1] = '\0';
+    if (inputMode==1){
+        DrawRectangleLines((float)fieldX, (float)startY+45, (float)fieldW, 30.0f, RED);
+        int key=GetCharPressed();
+        while (key>0){
+            if (key>=32 && key<=125 && strlen(tempTel)<19){
+                int len=strlen(tempTel);
+                tempTel[len]=(char)key;
+                tempTel[len+1] ='\0';
             }
-            key = GetCharPressed();
+            key= GetCharPressed();
         } //while
         if (IsKeyPressed(KEY_BACKSPACE) && strlen(tempTel) > 0)
-            tempTel[strlen(tempTel) - 1] = '\0';
+            tempTel[strlen(tempTel)-1]='\0';
     } //if
-
-    DrawText("Email: ", labelX, startY + 100, 20, BLACK);
-    DrawRectangle((float)fieldX, (float)startY + 95, (float)fieldW, 30.0f, WHITE);
-    DrawRectangleLines((float)fieldX, (float)startY + 95, (float)fieldW, 30.0f, GRAY);
-    DrawText(tempEmail, fieldX + 5, startY + 100, 20, BLACK);
-    if (inputMode == 2) {
+    DrawText("Email: ", labelX, startY+100, 20, BLACK);
+    DrawRectangle((float)fieldX, (float)startY+95, (float)fieldW, 30.0f, WHITE);
+    DrawRectangleLines((float)fieldX, (float)startY+95, (float)fieldW, 30.0f, GRAY);
+    DrawText(tempEmail, fieldX+5, startY+100, 20, BLACK);
+    if (inputMode==2) {
         DrawRectangleLines((float)fieldX, (float)startY + 95, (float)fieldW, 30.0f, RED);
-        int key = GetCharPressed();
-        while (key > 0) {
-            if (key >= 32 && key <= 125 && strlen(tempEmail) < 99) {
-                int len = strlen(tempEmail);
-                tempEmail[len] = (char)key;
-                tempEmail[len + 1] = '\0';
+        int key=GetCharPressed();
+        while (key>0){
+            if (key>=32 && key<=125 && strlen(tempEmail)<99){
+                int len=strlen(tempEmail);
+                tempEmail[len]=(char)key;
+                tempEmail[len + 1]='\0';
             }
-            key = GetCharPressed();
+            key=GetCharPressed();
         } //while
         if (IsKeyPressed(KEY_BACKSPACE) && strlen(tempEmail) > 0)
-            tempEmail[strlen(tempEmail) - 1] = '\0';
+            tempEmail[strlen(tempEmail)-1] ='\0';
     } //if
 
     if (IsKeyPressed(KEY_TAB)) {
-        inputMode = (inputMode + 1) % 3;
+        inputMode=(inputMode + 1) % 3;
     }
 
-    Rectangle btnGuardar = { 200.0f, (float)startY + 170, 120.0f, 40.0f };
-    Rectangle btnCancelar = { 350.0f, (float)startY + 170, 120.0f, 40.0f };
-    bool hoverG = false, hoverC = false;
+    //botones guardar y cancelar
+    Rectangle btnGuardar={ 200.0f, (float)startY+170, 120.0f, 40.0f};
+    Rectangle btnCancelar={350.0f, (float)startY+170, 120.0f, 40.0f};
+    bool hoverG=false, hoverC=false;
     DibBot(btnGuardar, "Guardar", GREEN, DARKGREEN, &hoverG);
     DibBot(btnCancelar, "Cancelar", RED, MAROON, &hoverC);
 
-    if (BotPress(btnGuardar, hoverG)) {
-        if (esEdicion) {
+    //si se presiona guardar, se guarda, la edicion o el nuevo contacto
+    if (BotPress(btnGuardar, hoverG)){
+        if (esEdicion){//si es edicion, se actualiza el contacto actual
             strcpy(contactoActual->nombre, tempNomb);
             strcpy(contactoActual->telefono, tempTel);
             strcpy(contactoActual->email, tempEmail);
-            edoPrevio = MENU_PRINCIPAL;
+            edoPrevio=MENU_PRINCIPAL;
             MostMsj("Contacto actualizado.");
-        } else {
-            if (numContactos == capacidadContactos) {
-                capacidadContactos = capacidadContactos == 0 ? 5 : capacidadContactos * 2;
-                contactos = (Contacto**)realloc(contactos, capacidadContactos * sizeof(Contacto*));
+        } else{//si no es edicion, se crea un nuevo contacto
+            if (numContactos==capacidadContactos){
+                capacidadContactos=capacidadContactos==0 ? 5 : capacidadContactos * 2;
+                contactos=(Contacto**)realloc(contactos, capacidadContactos* sizeof(Contacto*));//redimensionar el arreglo si se llega al limite
             }
-            Contacto* nuevo = (Contacto*)malloc(sizeof(Contacto));
-            nuevo->id = numContactos > 0 ? contactos[numContactos - 1]->id + 1 : 1;
+            //es todo un pedo hacer nuevo contacto, joder
+            Contacto* nuevo=(Contacto*)malloc(sizeof(Contacto));
+            nuevo->id=numContactos > 0 ? contactos[numContactos-1]->id+1 : 1;
             strcpy(nuevo->nombre, tempNomb);
             strcpy(nuevo->telefono, tempTel);
             strcpy(nuevo->email, tempEmail);
-            nuevo->historialLlam = NULL;
-            contactos[numContactos++] = nuevo;
-            edoPrevio = MENU_PRINCIPAL;
+            nuevo->historialLlam=NULL;
+            contactos[numContactos++]=nuevo;
+            edoPrevio=MENU_PRINCIPAL;
             MostMsj("Contacto Agregado.");
         } //else
     } //if
-    if (BotPress(btnCancelar, hoverC)) {
-        edoActual = MENU_PRINCIPAL;
+    if (BotPress(btnCancelar, hoverC)){
+        edoActual=MENU_PRINCIPAL;
     }
 } //void
 
-void DibHist(Contacto* c) {
+void DibHist(Contacto* c){
     DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, LIGHTGRAY);
     DrawText(TextFormat("Historial de %s", c->nombre), 20, 20, 30, DARKBLUE);
 
-    Rectangle btnVolver = { 20.0f, (float)(SCREEN_HEIGHT - 60), 120.0f, 40.0f };
-    Rectangle btnRegistrar = { (float)(SCREEN_WIDTH - 180), (float)(SCREEN_HEIGHT - 60), 160.0f, 40.0f };
-    bool hoverV = false, hoverR = false;
+    //looking fancy section
+    Rectangle btnVolver={20.0f, (float)(SCREEN_HEIGHT - 60), 120.0f, 40.0f};
+    Rectangle btnRegistrar{ (float)(SCREEN_WIDTH - 180), (float)(SCREEN_HEIGHT - 60), 160.0f, 40.0f};
+    bool hoverV=false, hoverR=false;
     DibBot(btnVolver, "Volver", GRAY, DARKGRAY, &hoverV);
     DibBot(btnRegistrar, "Registrar Llamada", SKYBLUE, BLUE, &hoverR);
 
@@ -373,58 +381,59 @@ void DibHist(Contacto* c) {
     if (BotPress(btnRegistrar, hoverR)) {
         memset(tempFecha, 0, sizeof(tempFecha));
         memset(tempHr, 0, sizeof(tempHr));
-        tempDurac = 0;
-        tempTip = 1;
-        inputMode = 3;
-        edoActual = REGISTRAR_LLAMADA;
+        tempDurac= 0;
+        tempTip= 1;
+        inputMode= 3;
+        edoActual=REGISTRAR_LLAMADA;
     }
 
-    if (!c->historialLlam) {
+    //"bro, no tienes vida social, nadie te llama"
+    if (!c->historialLlam){
         DrawText("No hay llamadas registradas.", SCREEN_WIDTH / 2 - MeasureText("No hay llamadas registradas.", 20) / 2, 200, 20, DARKGRAY);
         return;
     }
 
-    int y = 100;
-    NodoLlamada* aux = c->historialLlam;
-    while (aux) {
+    int y=100;
+    NodoLlamada* aux=c->historialLlam;
+    while (aux){
         const char* tipoStr = tipoToString(aux->tipo);
-        Color color = aux->tipo == SALIENTE ? DARKGREEN : (aux->tipo == ENTRANTE ? ORANGE : MAROON);
+        Color color =aux->tipo== SALIENTE ? DARKGREEN : (aux->tipo==ENTRANTE ? ORANGE : MAROON);
         DrawText(TextFormat("%s %s Duracion: %d seg Tipo: %s", aux->fecha, aux->hora, aux->duracion, tipoStr), 30, y, 20, color);
         y += 30;
         if (y > SCREEN_HEIGHT - 100) break;
-        aux = aux->siguiente;
+        aux= aux->siguiente;
     } //while
-} //void
+}//void
 
 void DibFormuLlam(Contacto* c) {
     DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, LIGHTGRAY);
     DrawText(TextFormat("Registrar Llamada para %s", c->nombre), 20, 20, 30, DARKBLUE);
 
-    int startY = 100, fieldW = 300, labelX = 150, fieldX = 350;
+    int startY=100, fieldW=300, labelX=150, fieldX=350;
 
-    //FECHA
+    //fecha
     DrawText("Fecha (DD-MM-AAAA): ", labelX, startY, 20, BLACK);
-    DrawRectangle((float)fieldX, (float)startY - 5, (float)fieldW, 30.0f, WHITE);
+    DrawRectangle((float)fieldX, (float)startY-5, (float)fieldW, 30.0f, WHITE);
     DrawRectangleLines((float)fieldX, (float)startY - 5, (float)fieldW, 30.0f, GRAY);
-    DrawText(tempFecha, fieldX + 5, startY, 20, BLACK);
-    if (inputMode == 3) {
-        DrawRectangleLines((float)fieldX, (float)startY - 5, (float)fieldW, 30.0f, RED);
-        int key = GetCharPressed();
+    DrawText(tempFecha, fieldX+5, startY, 20, BLACK);
+    if (inputMode==3){
+        DrawRectangleLines((float)fieldX, (float)startY-5, (float)fieldW, 30.0f, RED);
+        int key=GetCharPressed();
         while (key > 0) {
             if (key >= 32 && key <= 125 && strlen(tempFecha) < 10) {
                 int len = strlen(tempFecha);
                 tempFecha[len] = (char)key;
                 tempFecha[len + 1] = '\0';
             }
-            key = GetCharPressed();
+            key=GetCharPressed();
         } //while
         if (IsKeyPressed(KEY_BACKSPACE) && strlen(tempFecha) > 0)
-            tempFecha[strlen(tempFecha) - 1] = '\0';
+            tempFecha[strlen(tempFecha) - 1]='\0';
     } //if
 
     //HORA
-    DrawText("Hora (HH:MM): ", labelX, startY + 50, 20, BLACK);
-    DrawRectangle((float)fieldX, (float)startY + 45, (float)fieldW, 30.0f, WHITE);
+    DrawText("Hora (HH:MM): ", labelX, startY+50, 20, BLACK);
+    DrawRectangle((float)fieldX, (float)startY+45, (float)fieldW, 30.0f, WHITE);
     DrawRectangleLines((float)fieldX, (float)startY + 45, (float)fieldW, 30.0f, GRAY);
     DrawText(tempHr, fieldX + 5, startY + 50, 20, BLACK);
     if (inputMode == 4) {
